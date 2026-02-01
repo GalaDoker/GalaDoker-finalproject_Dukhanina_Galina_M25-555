@@ -9,6 +9,24 @@ from dataclasses import dataclass, field
 from typing import Dict, Tuple
 
 
+def _read_key_from_file(filepath: str, key_name: str) -> str:
+    """
+    Читает значение ключа из файла в формате KEY=value.
+    Возвращает пустую строку, если ключ не найден или ошибка чтения.
+    """
+    if not os.path.isfile(filepath):
+        return ""
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith(f"{key_name}="):
+                    return line.split("=", 1)[1].strip().strip('"\'')
+    except OSError:
+        pass
+    return ""
+
+
 def _load_api_key_from_env_or_file() -> str:
     """
     Загрузка API-ключа: сначала переменная окружения, затем опционально файл
@@ -19,15 +37,9 @@ def _load_api_key_from_env_or_file() -> str:
         return key
     for name in (".env.parser", "parser_secrets.env"):
         path = os.path.join(os.getcwd(), name)
-        if os.path.isfile(path):
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if line.startswith("EXCHANGERATE_API_KEY="):
-                            return line.split("=", 1)[1].strip().strip('"\'')
-            except OSError:
-                pass
+        value = _read_key_from_file(path, "EXCHANGERATE_API_KEY")
+        if value:
+            return value
     return ""
 
 
@@ -89,30 +101,43 @@ class ParserConfig:
             RATES_TTL_SECONDS=int(os.getenv("RATES_TTL_SECONDS", "300")),
         )
     
-    def validate(self) -> bool:
-        '''
-        Валидация конфигурации
-        '''
+    def _warn_if_demo_api_key(self) -> None:
+        """Выводит предупреждение, если используется демо-ключ ExchangeRate-API."""
         if not self.EXCHANGERATE_API_KEY or self.EXCHANGERATE_API_KEY == 'demo_key':
             print('   ВНИМАНИЕ: Используется демо-ключ ExchangeRate-API!')
             print('   Для работы с фиатными валютами зарегистрируйтесь на:')
             print('   https://app.exchangerate-api.com/sign-up')
             print('   и установите переменную окружения EXCHANGERATE_API_KEY')
-        
-        # Проверяем коды валют
-        if not all(currency.isalpha() and currency.isupper() 
-                  for currency in self.FIAT_CURRENCIES + self.CRYPTO_CURRENCIES):
-            raise ValueError('Ошибка: Коды валют должны быть в верхнем регистре и содержать только буквы')
-        
-        # Создаем директорию для данных
+
+    def _validate_currency_codes(self) -> None:
+        """Проверяет, что все коды валют в верхнем регистре и содержат только буквы."""
+        all_currencies = list(self.FIAT_CURRENCIES) + list(self.CRYPTO_CURRENCIES)
+        if not all(
+            currency.isalpha() and currency.isupper() for currency in all_currencies
+        ):
+            raise ValueError(
+                'Ошибка: Коды валют должны быть в верхнем регистре и содержать только буквы'
+            )
+
+    def _ensure_data_directory(self) -> None:
+        """Создаёт директорию для данных, если её нет."""
         data_dir = os.path.dirname(self.RATES_FILE_PATH)
+        if not data_dir:
+            return
         if not os.path.exists(data_dir):
             try:
                 os.makedirs(data_dir, exist_ok=True)
                 print(f'Создана директория: {data_dir}')
             except OSError as e:
-                raise ValueError(f'Ошибка: Не удалось создать директорию {data_dir}: {e}')
-        
+                raise ValueError(
+                    f'Ошибка: Не удалось создать директорию {data_dir}: {e}'
+                ) from e
+
+    def validate(self) -> bool:
+        """Валидация конфигурации: предупреждение о ключе, проверка валют, создание директории."""
+        self._warn_if_demo_api_key()
+        self._validate_currency_codes()
+        self._ensure_data_directory()
         return True
     
     def get_coingecko_params(self) -> Dict[str, str]:

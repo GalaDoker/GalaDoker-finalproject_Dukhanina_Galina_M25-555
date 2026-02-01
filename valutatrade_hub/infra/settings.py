@@ -13,7 +13,69 @@ Singleton: единая точка конфигурации приложения
 Публичные методы: get(key, default=None) -> Any; reload() — перезагрузка конфигурации.
 """
 import os
-from typing import Any, Dict
+from typing import Any, Callable, Dict, Optional
+
+
+def _to_int(value: Any) -> Optional[int]:
+    """Преобразует значение в int. Возвращает None при ошибке."""
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return None
+    return None
+
+
+def _to_str(value: Any) -> Optional[str]:
+    """Возвращает строку или None для пустых значений."""
+    return str(value) if value else None
+
+
+# Маппинг ключей pyproject → парсер значения
+_PYPROJECT_KEYS: Dict[str, Callable[[Any], Optional[Any]]] = {
+    'rates_ttl_seconds': _to_int,
+    'currency_info_ttl_seconds': _to_int,
+    'data_directory': _to_str,
+    'default_base_currency': _to_str,
+    'log_level': _to_str,
+    'log_file': _to_str,
+}
+
+# Маппинг переменных окружения → ключи settings
+_ENV_TO_SETTING: Dict[str, str] = {
+    'VALUTATRADE_DATA_DIR': 'data_directory',
+    'VALUTATRADE_RATES_TTL': 'rates_ttl_seconds',
+    'VALUTATRADE_LOG_LEVEL': 'log_level',
+}
+
+
+def _parse_env_value(setting_key: str, value: str) -> Any:
+    """Преобразует значение из окружения в нужный тип для ключа."""
+    if setting_key == 'rates_ttl_seconds':
+        try:
+            return int(value)
+        except ValueError:
+            return None
+    return value
+
+
+def _read_pyproject_section() -> Optional[Dict[str, Any]]:
+    """Читает секцию [tool.valutatrade] из pyproject.toml. Возвращает None при ошибке."""
+    try:
+        import tomllib
+    except ImportError:
+        return None
+    if not os.path.exists('pyproject.toml'):
+        return None
+    try:
+        with open('pyproject.toml', 'rb') as f:
+            data = tomllib.load(f)
+        tool = data.get('tool', {}).get('valutatrade')
+        return tool if isinstance(tool, dict) else None
+    except Exception:
+        return None
 
 
 class SettingsLoader:
@@ -48,46 +110,26 @@ class SettingsLoader:
         self._load_pyproject()
         self._load_env()
 
-    def _load_pyproject(self):
-        '''Чтение секции [tool.valutatrade] из pyproject.toml при наличии.'''
-        try:
-            import tomllib
-        except ImportError:
+    def _load_pyproject(self) -> None:
+        """Чтение секции [tool.valutatrade] из pyproject.toml при наличии."""
+        tool = _read_pyproject_section()
+        if not tool:
             return
-        if not os.path.exists('pyproject.toml'):
-            return
-        try:
-            with open('pyproject.toml', 'rb') as f:
-                data = tomllib.load(f)
-            tool = data.get('tool', {}).get('valutatrade')
-            if isinstance(tool, dict):
-                for key, value in tool.items():
-                    if key == 'rates_ttl_seconds' and isinstance(value, int):
-                        self._settings['rates_ttl_seconds'] = value
-                    elif key == 'currency_info_ttl_seconds' and isinstance(value, int):
-                        self._settings['currency_info_ttl_seconds'] = value
-                    elif key in ('data_directory', 'default_base_currency', 'log_level', 'log_file'):
-                        self._settings[key] = value
-        except Exception:
-            pass
+        for key, parser in _PYPROJECT_KEYS.items():
+            if key not in tool:
+                continue
+            parsed = parser(tool[key])
+            if parsed is not None:
+                self._settings[key] = parsed
 
-    def _load_env(self):
-        '''Переменные окружения переопределяют значения.'''
-        env_mapping = {
-            'VALUTATRADE_DATA_DIR': 'data_directory',
-            'VALUTATRADE_RATES_TTL': 'rates_ttl_seconds',
-            'VALUTATRADE_LOG_LEVEL': 'log_level',
-        }
-        for env_var, setting_key in env_mapping.items():
+    def _load_env(self) -> None:
+        """Переменные окружения переопределяют значения."""
+        for env_var, setting_key in _ENV_TO_SETTING.items():
             value = os.getenv(env_var)
             if value:
-                if setting_key == 'rates_ttl_seconds':
-                    try:
-                        self._settings[setting_key] = int(value)
-                    except ValueError:
-                        pass
-                else:
-                    self._settings[setting_key] = value
+                parsed = _parse_env_value(setting_key, value)
+                if parsed is not None:
+                    self._settings[setting_key] = parsed
     
     def get(self, key: str, default: Any = None) -> Any:
         """

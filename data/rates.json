@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-11-09T19:21:05.060974",
+  "source": "coingecko, exchangerate",
+  "base_currency": "USD",
+  "rates": {
+    "BTC_USD": 103437,
+    "ETH_USD": 3511.18,
+    "SOL_USD": 162.08,
+    "ADA_USD": 0.570944,
+    "DOT_USD": 3.21,
+    "EUR_USD": 0.8649,
+    "GBP_USD": 0.7609,
+    "RUB_USD": 80.9663,
+    "JPY_USD": 153.3078,
+    "CNY_USD": 7.1251
+  },
+  "total_pairs": 10
+}

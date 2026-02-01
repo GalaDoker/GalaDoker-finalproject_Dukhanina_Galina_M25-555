@@ -1,0 +1,23 @@
+[
+  {
+    "user_id": 1,
+    "username": "test",
+    "hashed_password": "235c0d35fcc0826a59dd1cc27446eaa268d2019f2056bcbbc82035c1b53d4484",
+    "salt": "dd062512de375b7a",
+    "registration_date": "2025-11-09T14:52:57.329421"
+  },
+  {
+    "user_id": 2,
+    "username": "test123",
+    "hashed_password": "cc830505f495e86866951cee5cc941040efe4c828c6c2ea496950cd42948198e",
+    "salt": "ca363cee13141159",
+    "registration_date": "2025-11-09T17:28:44.642565"
+  },
+  {
+    "user_id": 3,
+    "username": "imya_sos",
+    "hashed_password": "ff82483ab263accf33adab084964e36f0d501bde5681d4dd0110df2c78a38a44",
+    "salt": "363761c2345c73c0",
+    "registration_date": "2025-11-09T19:15:57.408877"
+  }
+]

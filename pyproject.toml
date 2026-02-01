@@ -4,23 +4,31 @@ version = "0.1.0"
 description = "ValutaTrade Hub — курсы валют, портфолио, CLI"
 authors = ["Духанина Галина"]
 readme = "README.md"
+license = "MIT"
+keywords = ["currency", "portfolio", "cli", "exchange-rates"]
 packages = [
     { include = "valutatrade_hub", from = "." }
 ]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
 
 [tool.poetry.dependencies]
-python = "^3.12"
-prettytable = "^3.16.0"
-requests = "^2.32.5"
+python = ">=3.12,<4"
+prettytable = "~3.16.0"
+requests = "~2.32.5"
 
 [tool.poetry.scripts]
 project = "main:main"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.14.0"
+ruff = "~0.14.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]

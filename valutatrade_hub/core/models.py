@@ -6,6 +6,7 @@ from typing import Callable, Dict, Optional
 
 from .currencies import get_currency
 from .exceptions import InsufficientFundsError
+from .utils import convert_amount, normalize_currency_code
 
 
 class User:
@@ -67,7 +68,7 @@ class User:
 
 class Wallet:
     def __init__(self, currency_code: str, balance: float = 0.0):
-        self.currency_code = currency_code.upper()
+        self.currency_code = normalize_currency_code(currency_code)
         self._balance = balance
     
     def deposit(self, amount: float) -> None:
@@ -136,7 +137,7 @@ class Portfolio:
         '''
         Добавление новой валюты в портфель (если её ещё нет).
         '''
-        currency_code = currency_code.upper()
+        currency_code = normalize_currency_code(currency_code)
         if currency_code in self._wallets:
             return
         get_currency(currency_code)
@@ -146,7 +147,7 @@ class Portfolio:
         '''
         Возвращает кошелёк по коду валюты (создаёт новый, если не существует).
         '''
-        currency_code = currency_code.upper()
+        currency_code = normalize_currency_code(currency_code)
         if currency_code not in self._wallets:
             self._wallets[currency_code] = Wallet(currency_code, 0.0)
         return self._wallets[currency_code]
@@ -159,7 +160,7 @@ class Portfolio:
         '''
         Общая стоимость всех валют в базовой валюте (по курсам или фиктивным данным).
         '''
-        base_currency = base_currency.upper()
+        base_currency = normalize_currency_code(base_currency)
         total = 0.0
         for code, wallet in self._wallets.items():
             if code == base_currency:
@@ -167,19 +168,19 @@ class Portfolio:
             elif get_rate:
                 try:
                     rate = get_rate(code, base_currency)
-                    total += wallet.balance * rate
+                    total += convert_amount(wallet.balance, rate)
                 except Exception:
                     pass
             else:
                 # Фиктивные курсы: конвертируем в USD, затем в base_currency
                 to_usd = _STUB_RATES_TO_USD.get(code, 0.0)
-                usd_value = wallet.balance * to_usd
+                usd_value = convert_amount(wallet.balance, to_usd)
                 if base_currency == 'USD':
                     total += usd_value
                 else:
                     usd_per_base = _STUB_RATES_TO_USD.get(base_currency)
                     if usd_per_base and usd_per_base > 0:
-                        total += usd_value / usd_per_base
+                        total += convert_amount(usd_value, 1.0 / usd_per_base)
         return total
 
     @property

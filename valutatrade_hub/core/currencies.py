@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Dict
 
 from .exceptions import CurrencyNotFoundError
+from .utils import normalize_currency_code, validate_currency_code
 
 
 class Currency(ABC):
@@ -11,13 +12,10 @@ class Currency(ABC):
     Инварианты: code — верхний регистр, 2–5 символов, без пробелов; name — не пустая строка.
     '''
     def __init__(self, name: str, code: str):
-        code_upper = (code or '').strip().upper()
-        if not code_upper or len(code_upper) < 2 or len(code_upper) > 5 or ' ' in code_upper or not code_upper.isalpha():
-            raise ValueError('Ошибка: Код валюты должен быть 2-5 символов в верхнем регистре, без пробелов')
+        self._code = validate_currency_code(code)
         if not name or not name.strip():
             raise ValueError('Ошибка: Название валюты не может быть пустым')
         self._name = name.strip()
-        self._code = code_upper
     
     @property
     def name(self) -> str:
@@ -60,7 +58,7 @@ class CurrencyRegistry:
     
     @classmethod
     def get_currency(cls, code: str) -> Currency:
-        code = code.upper()
+        code = normalize_currency_code(code)
         if code not in cls._currencies:
             raise CurrencyNotFoundError(code)
         return cls._currencies[code]

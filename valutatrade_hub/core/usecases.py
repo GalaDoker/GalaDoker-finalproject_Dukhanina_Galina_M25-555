@@ -20,6 +20,7 @@ from valutatrade_hub.decorators import log_action
 from ..infra.database import db
 from ..infra.settings import settings
 from .currencies import get_currency
+from .utils import convert_amount
 from .exceptions import (
     AuthenticationError,
     CurrencyNotFoundError,
@@ -145,7 +146,7 @@ class PortfolioManager:
         portfolio = self.get_user_portfolio(user_id)
         rate_manager = RateManager()
         rate, _ = rate_manager.get_rate(currency_code, base_currency)
-        cost_in_base_currency = amount * rate
+        cost_in_base_currency = convert_amount(amount, rate)
 
         base_wallet = portfolio.get_wallet(base_currency)
         if base_wallet.balance < cost_in_base_currency:
@@ -196,7 +197,7 @@ class PortfolioManager:
             raise InsufficientFundsError(wallet.balance, amount, currency_code)
         rate_manager = RateManager()
         rate, _ = rate_manager.get_rate(currency_code, base_currency)
-        revenue_in_base_currency = amount * rate
+        revenue_in_base_currency = convert_amount(amount, rate)
         
         wallet.withdraw(amount)
         

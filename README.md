@@ -89,4 +89,4 @@ Parser Service подтягивает курсы с внешних API (Exchange
 
 Демонстрация функционала: полный цикл (register → login → buy/sell → show-portfolio → get-rate), **update-rates**, **show-rates**, обработка ошибок (недостаточно средств, неизвестная валюта).
 
-[(https://asciinema.org/a/csyOcp3wSUsoBvW0.svg)](https://asciinema.org/a/csyOcp3wSUsoBvW0)
+[![asciicast](https://asciinema.org/a/csyOcp3wSUsoBvW0.svg)](https://asciinema.org/a/csyOcp3wSUsoBvW0)

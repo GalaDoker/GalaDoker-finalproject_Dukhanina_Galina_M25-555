@@ -68,44 +68,57 @@ class User:
     def registration_date(self) -> datetime:
         return self._registration_date
 
+def _validate_amount(value: float, context: str = 'Сумма') -> None:
+    """Проверяет, что значение — неотрицательное число."""
+    if not isinstance(value, (int, float)):
+        raise TypeError(f'Ошибка: {context} должна быть числом, получено: {type(value).__name__}')
+    if value != value:  # NaN
+        raise ValueError(f'Ошибка: {context} не может быть NaN')
+    if value < 0:
+        raise ValueError(f'Ошибка: {context} не может быть отрицательной')
+
+
 class Wallet:
     def __init__(self, currency_code: str, balance: float = 0.0):
         self.currency_code = normalize_currency_code(currency_code)
-        self._balance = balance
-    
+        self._balance = 0.0
+        self.balance = balance  # через setter — валидация
+
     def deposit(self, amount: float) -> None:
-        '''
-        Пополнение баланса
-        '''
+        """Пополнение баланса."""
+        _validate_amount(amount, 'Сумма пополнения')
         if amount <= 0:
             raise ValueError('Ошибка: Сумма пополнения должна быть положительной')
         self.balance += amount
-    
+
     def withdraw(self, amount: float) -> None:
-        '''
-        Снятие средств/Удаление
-        '''
+        """Снятие средств. Проверяет остаток перед списанием."""
+        _validate_amount(amount, 'Сумма снятия')
         if amount <= 0:
             raise ValueError('Ошибка: Сумма снятия должна быть положительной')
         if amount > self._balance:
             raise InsufficientFundsError(self._balance, amount, self.currency_code)
         self.balance -= amount
-    
+
     def get_balance_info(self) -> str:
-        '''
-        Информация о балансе
-        '''
+        """Возвращает читаемую строку: 'Валюта: баланс', например 'USD: 100.00'."""
         return f'{self.currency_code}: {self._balance:.2f}'
-    
+
     @property
     def balance(self) -> float:
         return self._balance
-    
+
     @balance.setter
     def balance(self, value: float) -> None:
+        if not isinstance(value, (int, float)):
+            raise TypeError(
+                f'Ошибка: Баланс должен быть числом, получено: {type(value).__name__}'
+            )
+        if value != value:  # NaN
+            raise ValueError('Ошибка: Баланс не может быть NaN')
         if value < 0:
             raise ValueError('Ошибка: Баланс не может быть отрицательным')
-        self._balance = value
+        self._balance = float(value)
         
 
 # Фиктивные курсы для get_total_value при отсутствии get_rate (1 единица валюты = X USD)

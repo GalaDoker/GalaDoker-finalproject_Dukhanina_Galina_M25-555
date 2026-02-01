@@ -20,7 +20,6 @@ from valutatrade_hub.decorators import log_action
 from ..infra.database import db
 from ..infra.settings import settings
 from .currencies import get_currency
-from .utils import convert_amount
 from .exceptions import (
     AuthenticationError,
     CurrencyNotFoundError,
@@ -30,6 +29,7 @@ from .exceptions import (
     UserNotFoundError,
 )
 from .models import Portfolio, User, Wallet
+from .utils import convert_amount
 
 
 class UserManager:

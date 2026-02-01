@@ -408,6 +408,10 @@ class InteractiveCLI:
                 return
             
             try:
+                if not self.rate_manager.is_rates_data_fresh():
+                    age = self.rate_manager.get_rates_age()
+                    print(f'\n⚠ Данные курсов могут быть устаревшими ({age}).')
+                    print('  Для актуальных курсов выполните команду update-rates.\n')
                 rate = self.rate_manager.get_rate(currency_code, 'USD')[0]
             except CurrencyNotFoundError as e:
                 print(f'\n{e}')
@@ -535,6 +539,10 @@ class InteractiveCLI:
                 return
             
             try:
+                if not self.rate_manager.is_rates_data_fresh():
+                    age = self.rate_manager.get_rates_age()
+                    print(f'\n⚠ Данные курсов могут быть устаревшими ({age}).')
+                    print('  Для актуальных курсов выполните команду update-rates.\n')
                 rate = self.rate_manager.get_rate(currency_code, 'USD')[0]
                 revenue = amount * rate
                 current_usd_balance = portfolio.wallets['USD'].balance if 'USD' in portfolio.wallets else 0

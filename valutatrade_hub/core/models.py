@@ -10,12 +10,14 @@ from .utils import convert_amount, normalize_currency_code
 
 
 class User:
-    def __init__(self, user_id: int, username: str, password: str, 
-                 salt: Optional[str] = None, 
+    def __init__(self, user_id: int, username: str, password: str,
+                 salt: Optional[str] = None,
                  registration_date: Optional[datetime] = None):
         self._user_id = user_id
-        self.username = username
+        self.username = username  # setter проверяет непустое имя
         self._salt = salt or secrets.token_hex(8)
+        if salt is None and len(password) < 4:
+            raise ValueError('Ошибка: Минимальная длина пароля - 4 символа')
         self._hashed_password = self._hash_password(password)
         self._registration_date = registration_date or datetime.now()
     

@@ -32,6 +32,16 @@ from .models import Portfolio, User, Wallet
 from .utils import convert_amount
 
 
+def _parse_registration_date(iso_str: Optional[str]) -> Optional[datetime]:
+    """Парсит ISO-дату из users.json. Возвращает None при ошибке."""
+    if not iso_str or not isinstance(iso_str, str):
+        return None
+    try:
+        return datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+    except (ValueError, TypeError):
+        return None
+
+
 class UserManager:
     def __init__(self):
         self.current_user: Optional[User] = None
@@ -41,9 +51,11 @@ class UserManager:
         '''
         Регистрация нового пользователя
         '''
+        if not username or not username.strip():
+            raise ValueError('Ошибка: Имя пользователя не может быть пустым')
         if len(password) < 4:
             raise UsernamePasswordError()
-        
+
         users_data = db.load_data('users') or []
         
         if any(user['username'] == username for user in users_data):
@@ -97,17 +109,19 @@ class UserManager:
             user_data['salt']
         )
         temp_user._hashed_password = user_data['hashed_password']
-        
+
         if not temp_user.verify_password(password):
             raise AuthenticationError()
-        
+
+        registration_date = _parse_registration_date(user_data.get('registration_date'))
         self.current_user = User(
             user_data['user_id'],
             user_data['username'],
             password,
-            user_data['salt']
+            salt=user_data['salt'],
+            registration_date=registration_date,
         )
-        
+
         return self.current_user
     
     def logout(self):

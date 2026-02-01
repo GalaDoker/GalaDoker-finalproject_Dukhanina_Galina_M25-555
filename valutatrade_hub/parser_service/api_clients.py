@@ -51,6 +51,20 @@ class BaseApiClient(ABC):
                             "429 Too Many Requests: превышен лимит запросов. "
                             "Подождите или уменьшите частоту обновлений."
                         )
+                    if response.status_code == 401:
+                        raise ApiRequestError(
+                            "401 Unauthorized: неверный или отсутствующий API-ключ. "
+                            "Проверьте переменную EXCHANGERATE_API_KEY."
+                        )
+                    if response.status_code == 403:
+                        raise ApiRequestError(
+                            "403 Forbidden: доступ запрещён. "
+                            "Возможно, ключ недействителен или превышен лимит плана."
+                        )
+                    if response.status_code >= 500:
+                        raise ApiRequestError(
+                            f"Сервер недоступен (HTTP {response.status_code}). Повторите позже."
+                        )
                     raise ApiRequestError(f"HTTP {response.status_code}: {response.text[:200]}")
                 return response.json()
             except requests.exceptions.RequestException as e:

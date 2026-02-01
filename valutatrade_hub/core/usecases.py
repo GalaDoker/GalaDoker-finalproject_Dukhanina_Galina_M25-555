@@ -132,11 +132,12 @@ class UserManager:
     
     def _create_portfolio(self, user_id: int):
         '''
-        Создание пустого портфеля для пользователя (user_id + пустой словарь кошельков).
+        Создание портфеля для пользователя (user_id + кошельки).
+        По ТЗ: стартовый счёт 10 000 USD.
         '''
         new_portfolio = {
             'user_id': user_id,
-            'wallets': {}
+            'wallets': {'USD': {'balance': 10000.0}}
         }
 
         def update_portfolios(portfolios_list):

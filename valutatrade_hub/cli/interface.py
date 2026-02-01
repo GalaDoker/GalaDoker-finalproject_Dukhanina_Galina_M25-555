@@ -156,12 +156,14 @@ class InteractiveCLI:
             print(f'Источник: {status['source']}')
             
             rates_data = db.load_data('rates') or {}
-            pairs = list(rates_data.get('pairs', {}).keys())[:5]
-            
+            pairs = rates_data.get('pairs', {})
+            if not pairs and rates_data.get('rates'):
+                pairs = {k: {'rate': v} for k, v in rates_data['rates'].items()}
+            pair_list = list(pairs.keys())[:5]
             print('\nПримеры текущих курсов:')
-            for pair in pairs:
-                rate_info = rates_data['pairs'][pair]
-                print(f'   {pair}: {rate_info['rate']:.6f}')
+            for pair in pair_list:
+                rate_val = pairs[pair].get('rate', pairs[pair]) if isinstance(pairs[pair], dict) else pairs[pair]
+                print(f'   {pair}: {float(rate_val):.6f}')
             
         except Exception as e:
             print(f'Ошибка: Произошла ошибка: {e}')
@@ -217,7 +219,8 @@ class InteractiveCLI:
         print('-' * 50)
         if self.user_manager.current_user:
             print(f'Пользователь: {self.user_manager.current_user.username}')
-            print(f'Дата регистрации: {self.user_manager.current_user.registration_date}')
+            reg = self.user_manager.current_user.registration_date
+            print(f'Дата регистрации: {reg.strftime("%Y-%m-%d %H:%M")}')
         print()
     
     def wait_for_enter(self):
@@ -277,11 +280,10 @@ class InteractiveCLI:
         
         try:
             user = self.user_manager.register_user(username, password)
-            msg = (
+            print(
                 f"\nПользователь '{user.username}' зарегистрирован (id={user.user_id}). "
-                "Войдите: login --username {user.username} --password ****"
+                "Стартовый счёт: 10 000 USD. Выберите команду login для входа."
             )
-            print(msg.replace("{user.username}", user.username))
         except UsernameTakenError as e:
             print(f'\n{e}')
         except UsernamePasswordError as e:
@@ -318,7 +320,7 @@ class InteractiveCLI:
         Показать портфель: все кошельки и итоговая стоимость в базовой валюте (по умолчанию USD).
         '''
         if not self.user_manager.current_user:
-            print('\nСначала выполните вход')
+            print('\nОшибка: Сначала выполните вход (команда login).')
             self.wait_for_enter()
             return
 
@@ -342,7 +344,7 @@ class InteractiveCLI:
             )
 
             if not portfolio.wallets:
-                print('\nУ вас нет кошельков.')
+                print('\nПортфель пуст. Используйте buy для покупки валюты.')
                 self.wait_for_enter()
                 return
 

@@ -62,26 +62,41 @@ class DatabaseManager:
             raise IOError(f'Ошибка: Ошибка записи в файл {filepath}: {e}')
     
     def load_data(self, entity: str) -> Any:
-        '''
-        Загрузка данных по имени сущности
-        '''
+        """
+        Загружает данные по имени сущности.
 
+        Args:
+            entity: Имя сущности (users, portfolios, rates, exchange_rates) — без .json.
+
+        Returns:
+            Десериализованные данные (list/dict) или None при ошибке чтения.
+        """
         filepath = os.path.join(self.data_dir, f'{entity}.json')
         result = self._read_file(filepath)
         return result
     
-    def save_data(self, entity: str, data: Any):
-        '''
-        Сохранение данных по имени сущности
-        '''
+    def save_data(self, entity: str, data: Any) -> None:
+        """
+        Сохраняет данные по имени сущности в JSON-файл.
 
+        Args:
+            entity: Имя сущности (users, portfolios, rates, exchange_rates).
+            data: Данные для записи (list, dict — сериализуемые в JSON).
+        """
         filepath = os.path.join(self.data_dir, f'{entity}.json')
         self._write_file(filepath, data)
         
     def update_data(self, entity: str, update_fn: callable) -> Any:
-        '''
-        Атомарное обновление данных
-        '''       
+        """
+        Атомарно обновляет данные: load → update_fn → save под блокировкой.
+
+        Args:
+            entity: Имя сущности (users, portfolios, rates, exchange_rates).
+            update_fn: Функция (data) -> modified_data. Получает текущие данные, возвращает обновлённые.
+
+        Returns:
+            Результат update_fn (обновлённые данные).
+        """
         with self._lock:            
             try:
                 data = self.load_data(entity)

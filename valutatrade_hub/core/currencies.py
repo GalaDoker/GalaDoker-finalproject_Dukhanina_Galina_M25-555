@@ -53,25 +53,26 @@ class CurrencyRegistry:
     _currencies: Dict[str, Currency] = {}
     
     @classmethod
-    def register_currency(cls, currency: Currency):
+    def register_currency(cls, currency: Currency) -> None:
+        """Регистрирует валюту в реестре по её коду."""
         cls._currencies[currency.code] = currency
-    
+
     @classmethod
     def get_currency(cls, code: str) -> Currency:
+        """Возвращает валюту по коду. Вызывает CurrencyNotFoundError, если не найдена."""
         code = normalize_currency_code(code)
         if code not in cls._currencies:
             raise CurrencyNotFoundError(code)
         return cls._currencies[code]
-    
+
     @classmethod
     def get_all_currencies(cls) -> Dict[str, Currency]:
+        """Возвращает копию словаря всех зарегистрированных валют."""
         return cls._currencies.copy()
 
-# Инициализация реестра
-def initialize_currencies():
-    '''
-    Инициализация базового набора валют
-    '''
+
+def initialize_currencies() -> None:
+    """Инициализирует базовый набор валют (фиат и криптовалюты) в реестре."""
     CurrencyRegistry.register_currency(FiatCurrency('US Dollar', 'USD', 'United States'))
     CurrencyRegistry.register_currency(FiatCurrency('Euro', 'EUR', 'Eurozone'))
     CurrencyRegistry.register_currency(FiatCurrency('British Pound', 'GBP', 'United Kingdom'))
@@ -85,8 +86,8 @@ def initialize_currencies():
     CurrencyRegistry.register_currency(CryptoCurrency('Cardano', 'ADA', 'Ouroboros', 2.3e10))
     CurrencyRegistry.register_currency(CryptoCurrency('Polkadot', 'DOT', 'Nominated Proof-of-Stake', 1.2e10))
 
-# Фабричный метод
 def get_currency(code: str) -> Currency:
+    """Возвращает объект валюты по коду. Вызывает CurrencyNotFoundError, если валюта не зарегистрирована."""
     return CurrencyRegistry.get_currency(code)
     
     

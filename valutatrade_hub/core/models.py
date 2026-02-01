@@ -107,7 +107,7 @@ class Wallet:
         
 
 # Фиктивные курсы для get_total_value при отсутствии get_rate (1 единица валюты = X USD)
-_STUB_RATES_TO_USD: Dict[str, float] = {
+STUB_RATES_TO_USD: Dict[str, float] = {
     'USD': 1.0,
     'EUR': 1.05,
     'GBP': 1.27,
@@ -173,12 +173,12 @@ class Portfolio:
                     pass
             else:
                 # Фиктивные курсы: конвертируем в USD, затем в base_currency
-                to_usd = _STUB_RATES_TO_USD.get(code, 0.0)
+                to_usd = STUB_RATES_TO_USD.get(code, 0.0)
                 usd_value = convert_amount(wallet.balance, to_usd)
                 if base_currency == 'USD':
                     total += usd_value
                 else:
-                    usd_per_base = _STUB_RATES_TO_USD.get(base_currency)
+                    usd_per_base = STUB_RATES_TO_USD.get(base_currency)
                     if usd_per_base and usd_per_base > 0:
                         total += convert_amount(usd_value, 1.0 / usd_per_base)
         return total

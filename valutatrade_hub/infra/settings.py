@@ -90,11 +90,20 @@ class SettingsLoader:
                     self._settings[setting_key] = value
     
     def get(self, key: str, default: Any = None) -> Any:
-        '''Получение значения настройки по ключу.'''
+        """
+        Возвращает значение настройки по ключу.
+
+        Args:
+            key: Ключ (data_directory, rates_ttl_seconds, log_level и т.д.).
+            default: Значение по умолчанию, если ключ отсутствует.
+
+        Returns:
+            Значение настройки или default.
+        """
         return self._settings.get(key, default)
 
-    def reload(self):
-        '''Перезагрузка конфигурации (очистка кеша и повторная загрузка).'''
+    def reload(self) -> None:
+        """Перезагружает конфигурацию: очищает кеш и повторно загружает из pyproject.toml и окружения."""
         self._settings.clear()
         self._load_settings()
 

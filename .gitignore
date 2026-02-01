@@ -1,0 +1,15 @@
+logs/
+.ruff_cache/
+# Секреты парсера (API-ключ): не отслеживать
+.env.parser
+parser_secrets.env
+.secrets
+project3/
+.venv/
+dist/
+__pycache__/
+valutatrade_hub/__pycache__/
+valutatrade_hub/cli/__pycache__/
+valutatrade_hub/core/__pycache__/
+valutatrade_hub/infra/__pycache__/
+valutatrade_hub/parser_service/__pycache__/

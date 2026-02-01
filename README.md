@@ -87,8 +87,6 @@ Parser Service подтягивает курсы с внешних API (Exchange
 
 ## Демонстрация (asciinema)
 
-Ниже — демонстрация всего функционала в одном ролике.
+Демонстрация функционала: полный цикл (register → login → buy/sell → show-portfolio → get-rate), **update-rates**, **show-rates**, обработка ошибок (недостаточно средств, неизвестная валюта).
 
-[![Demo](https://asciinema.org/a/0qwhExiNZSvyR6IdltBvXojQy.svg)](https://asciinema.org/a/0qwhExiNZSvyR6IdltBvXojQy)
-
-Рекомендуется показать в демо: полный цикл (register → login → buy/sell → show-portfolio → get-rate), отдельно **update-rates** и **show-rates**, а также обработку ошибок (недостаточно средств, неизвестная валюта).
+[(https://asciinema.org/a/csyOcp3wSUsoBvW0.svg)](https://asciinema.org/a/csyOcp3wSUsoBvW0)
